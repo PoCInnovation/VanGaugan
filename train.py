@@ -1,0 +1,132 @@
+import torch
+import torch.nn as nn
+import torch.nn.parallel
+import torch.backends.cudnn as cudnn
+import torch.optim as optim
+import torch.utils.data
+import torchvision.datasets as dset
+import torchvision.transforms as transforms
+import torchvision.utils as vutils
+import matplotlib.pyplot as plt
+import numpy as np
+from torch.autograd.variable import Variable
+
+from generator import Generator, getImage
+from discriminator import Discriminator
+from pprint import pprint
+from sys import argv
+
+BS = 128 # Batch size
+LR = 0.0002 # Learning Rate
+
+mnistLoader = torch.utils.data.DataLoader( # Load MNIST DATASET
+    dset.MNIST(
+        './dataset',
+        train=False,
+        download=True,
+        transform=transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))
+            ])
+        ),
+    batch_size=BS, shuffle=True
+)
+
+def createNoise():
+    return Variable(torch.randn(1, BS)) # renvoie un vecteur normalisé de shape (1, BS)
+                                        # input pour le generator
+
+class Trainer():
+    def __init__(self):
+        self.GNet = Generator()
+        self.DNet = Discriminator()
+
+        self.GOpti = optim.Adam(self.GNet.parameters(), lr=LR)
+        self.DOpti = optim.Adam(self.DNet.parameters(), lr=LR)
+        # Adam optimizer -> Stochastic Optimization
+
+        self.lossFun = nn.BCELoss() # Binary cross entropy, Prend 2 paramètres
+
+    # Entraine le modèle du generator
+    def trainGNet(self, fakeData):
+        self.GOpti.zero_grad()
+        result = self.DNet(fakeData)
+
+        sizeAvrg = Variable(torch.ones(fakeData.size(0), 1))
+        err = self.lossFun(result, sizeAvrg)
+        err.backward()
+
+        self.GOpti.step()
+        return err
+
+
+    # Entraine le modèle du discriminant
+    def trainDNet(self, realData, fakeData):
+        self.DOpti.zero_grad()
+
+        realRes = self.DNet(realData)
+        sizeAvrg = Variable(torch.ones(fakeData.size(0), 1))
+        realErr = self.lossFun(realRes, sizeAvrg)
+        realErr.backward()
+
+        fakeRes = self.DNet(fakeData)
+        sizeAvrg = Variable(torch.zeros(fakeData.size(0), 1))
+        fakeErr = self.lossFun(fakeRes, sizeAvrg)
+        fakeErr.backward()
+
+        self.DOpti.step()
+        return {
+            "error": realErr + fakeErr,
+            "realRes": realRes,
+            "fakeRes": fakeRes
+        }
+
+    def __call__(self, epoch, loader):
+        for e in range(epoch):
+            for i, (batch, _) in enumerate(loader):
+                s = batch.size(0)
+
+                real = Variable(self.preprocess(batch, 784))
+                fake = self.GNet(self.createNoise(s)).detach()
+                DResult = self.trainDNet(real, fake)
+
+                fake = self.GNet(self.createNoise(s))
+                GError = self.trainGNet(fake)
+
+
+            self.log(e, DResult['error'], GError)
+
+
+    def log(self, epoch, DLoss, GLoss):
+        print(f"epoch: {epoch}")
+        print(f"Discriminator Loss : {DLoss}")
+        print(f"Generator Loss : {GLoss}")
+        print("==========================================")
+
+    def save(self, Gpath, Dpath):
+        torch.save(self.GNet.state_dict(), Gpath)
+        torch.save(self.DNet.state_dict(), Dpath)
+
+    # renvoie un vecteur normalisé de shape (1, BS)input pour le generator
+    def createNoise(self, n):
+        return Variable(torch.randn(n, BS))
+
+    def preprocess(self, rawData, nout):
+        return rawData.view(rawData.size(0), nout)
+
+    def reveal(self, data, i, j):
+        return data.view(data.size(0), 1, i, j)
+
+
+if __name__ == "__main__":
+    t = Trainer()
+    t(int(argv[1]), mnistLoader)
+
+    t.save(argv[2], argv[3])
+
+    rand_tensor = Variable(torch.randn(1, BS)) # Create random input
+
+    output = t.GNet(rand_tensor) # Call generator with random input
+
+    plt.imshow(getImage(output), cmap='gray') # Plot output
+    plt.show()
