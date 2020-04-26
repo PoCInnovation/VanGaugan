@@ -14,7 +14,7 @@ from torch.autograd.variable import Variable
 from generator import Generator, getImage
 from discriminator import Discriminator
 from pprint import pprint
-from sys import argv
+from sys import argv, exit
 
 BS = 128 # Batch size
 LR = 0.0002 # Learning Rate
@@ -118,7 +118,24 @@ class Trainer():
         return data.view(data.size(0), 1, i, j)
 
 
+def loadModel(path, Model):
+    model = Model()
+    try:
+        model.load_state_dict(torch.load(path))
+    except:
+        exit(f"Error : {path} : invalid model path.")
+    return model
+
+def load_and_show(path):
+    GNet = loadModel(path, Generator)
+    rand_tensor = Variable(torch.randn(1, BS))
+    res = GNet(rand_tensor)
+    plt.imshow(getImage(res), cmap='gray')
+    plt.show()
+
 if __name__ == "__main__":
+    load_and_show("./models/genator_50_e")
+    exit(0)
     t = Trainer()
     t(int(argv[1]), mnistLoader)
 
