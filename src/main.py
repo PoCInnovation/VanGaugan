@@ -1,5 +1,7 @@
 from argparse import ArgumentParser
-from sys import exit, argv, stderr
+from sys import exit, argv, stderr, path
+
+path.append("./src")
 from train import Trainer, load_and_show, mnistLoader
 
 def parseArgs():
