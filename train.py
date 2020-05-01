@@ -1,19 +1,13 @@
 import torch
 import torch.nn as nn
-import torch.nn.parallel
-import torch.backends.cudnn as cudnn
 import torch.optim as optim
 import torch.utils.data
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
-import torchvision.utils as vutils
 import matplotlib.pyplot as plt
-import numpy as np
-from torch.autograd.variable import Variable
 
 from generator import Generator, getImage
 from discriminator import Discriminator
-from pprint import pprint
 from sys import argv, exit
 
 BS = 128 # Batch size
@@ -32,10 +26,6 @@ mnistLoader = torch.utils.data.DataLoader( # Load MNIST DATASET
     batch_size=BS, shuffle=True
 )
 
-def createNoise():
-    return Variable(torch.randn(1, BS)) # renvoie un vecteur normalisé de shape (1, BS)
-                                        # input pour le generator
-
 class Trainer():
     def __init__(self):
         self.GNet = Generator()
@@ -52,7 +42,7 @@ class Trainer():
         self.GOpti.zero_grad()
         result = self.DNet(fakeData)
 
-        sizeAvrg = Variable(torch.ones(fakeData.size(0), 1))
+        sizeAvrg = torch.ones(fakeData.size(0), 1)
         err = self.lossFun(result, sizeAvrg)
         err.backward()
 
@@ -65,12 +55,12 @@ class Trainer():
         self.DOpti.zero_grad()
 
         realRes = self.DNet(realData)
-        sizeAvrg = Variable(torch.ones(fakeData.size(0), 1))
+        sizeAvrg = torch.ones(fakeData.size(0), 1)
         realErr = self.lossFun(realRes, sizeAvrg)
         realErr.backward()
 
         fakeRes = self.DNet(fakeData)
-        sizeAvrg = Variable(torch.zeros(fakeData.size(0), 1))
+        sizeAvrg = torch.zeros(fakeData.size(0), 1)
         fakeErr = self.lossFun(fakeRes, sizeAvrg)
         fakeErr.backward()
 
@@ -86,7 +76,7 @@ class Trainer():
             for i, (batch, _) in enumerate(loader):
                 s = batch.size(0)
 
-                real = Variable(self.preprocess(batch, 784))
+                real = self.preprocess(batch, 784)
                 fake = self.GNet(self.createNoise(s)).detach()
                 DResult = self.trainDNet(real, fake)
 
@@ -109,7 +99,7 @@ class Trainer():
 
     # renvoie un vecteur normalisé de shape (1, BS)input pour le generator
     def createNoise(self, n):
-        return Variable(torch.randn(n, BS))
+        return torch.randn(n, BS)
 
     def preprocess(self, rawData, nout):
         return rawData.view(rawData.size(0), nout)
@@ -128,7 +118,7 @@ def loadModel(path, Model):
 
 def load_and_show(path):
     GNet = loadModel(path, Generator)
-    rand_tensor = Variable(torch.randn(1, BS))
+    rand_tensor = torch.randn(1, BS)
     res = GNet(rand_tensor)
     plt.imshow(getImage(res), cmap='gray')
     plt.show()
@@ -141,7 +131,7 @@ if __name__ == "__main__":
 
     t.save(argv[2], argv[3])
 
-    rand_tensor = Variable(torch.randn(1, BS)) # Create random input
+    rand_tensor = torch.randn(1, BS) # Create random input
 
     output = t.GNet(rand_tensor) # Call generator with random input
 

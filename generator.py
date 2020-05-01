@@ -1,15 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.parallel
-import torch.backends.cudnn as cudnn
-import torch.optim as optim
-import torch.utils.data
-import torchvision.datasets as dset
-import torchvision.transforms as transforms
-import torchvision.utils as vutils
-import matplotlib.pyplot as plt
-import numpy as np
-from torch.autograd.variable import Variable
 
 nout = 784 # Number of output, 28 * 28
 nf = 128 # Number of feature maps
@@ -36,9 +26,10 @@ class Generator(nn.Module): # Class to build generator model
         return self.main(input)
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
     netGenerator = Generator() # Build generator
 
-    rand_tensor = Variable(torch.randn(1, nf)) # Create random input
+    rand_tensor = torch.randn(1, nf) # Create random input
 
     output = netGenerator(rand_tensor) # Call generator with random input
 

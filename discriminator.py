@@ -1,15 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.parallel
-import torch.backends.cudnn as cudnn
-import torch.optim as optim
-import torch.utils.data
-import torchvision.datasets as dset
-import torchvision.transforms as transforms
-import torchvision.utils as vutils
-import matplotlib.pyplot as plt
-import numpy as np
-from torch.autograd.variable import Variable
 
 nf = 784 # nombre de features : 784 pixels (28 * 28)
 nout = 1 # 1 output : sortie binaire
@@ -39,7 +29,7 @@ class Discriminator(nn.Module):
 if __name__ == "__main__":
     from generator import Generator
     G = Generator()
-    r = Variable(torch.randn(1, 128))
+    r = torch.randn(1, 128)
     y = G(r)
     D = Discriminator()
     y_ = D(y)
