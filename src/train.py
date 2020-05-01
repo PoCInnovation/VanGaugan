@@ -5,6 +5,7 @@ import torch.utils.data
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
+from torch.utils.tensorboard import SummaryWriter
 
 from generator import Generator, getImage
 from discriminator import Discriminator
@@ -36,6 +37,7 @@ class Trainer():
         # Adam optimizer -> Stochastic Optimization
 
         self.lossFun = nn.BCELoss() # Binary cross entropy, Prend 2 paramètres
+        self.writter = SummaryWriter() # logger pour tensorboard
 
     # Entraine le modèle du generator
     def trainGNet(self, fakeData):
@@ -92,6 +94,8 @@ class Trainer():
         print(f"Discriminator Loss : {DLoss}")
         print(f"Generator Loss : {GLoss}")
         print("==========================================")
+        self.writter.add_scalar('Loss/Generator', GLoss, epoch)
+        self.writter.add_scalar('Loss/Discriminator', DLoss, epoch)
 
     def save(self, Gpath, Dpath):
         torch.save(self.GNet.state_dict(), Gpath)
@@ -119,6 +123,7 @@ def loadModel(path, Model):
 def load_and_show(path):
     GNet = loadModel(path, Generator)
     rand_tensor = torch.randn(1, BS)
+    print(rand_tensor.mean())
     res = GNet(rand_tensor)
     plt.imshow(getImage(res), cmap='gray')
     plt.show()
