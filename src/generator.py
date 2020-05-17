@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from torch.utils.tensorboard import SummaryWriter
 
 nout = 784 # Number of output, 28 * 28
 nf = 128 # Number of feature maps
@@ -24,6 +25,9 @@ class Generator(nn.Module): # Class to build generator model
 
     def forward(self, input):
         return self.main(input)
+
+with SummaryWriter(log_dir='log/generator', comment='Generator network') as sw:
+    sw.add_graph(Generator(), torch.randn(1, nf))
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt

@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from torch.utils.tensorboard import SummaryWriter
 
 nf = 784 # nombre de features : 784 pixels (28 * 28)
 nout = 1 # 1 output : sortie binaire
@@ -25,6 +26,10 @@ class Discriminator(nn.Module):
 
     def forward(self, input):
         return self.main(input)
+
+with SummaryWriter(log_dir='log/discriminator', comment='Generator network') as sw:
+    sw.add_graph(Discriminator(), torch.zeros(nf))
+
 
 if __name__ == "__main__":
     from generator import Generator

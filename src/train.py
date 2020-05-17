@@ -4,6 +4,7 @@ import torch.optim as optim
 import torch.utils.data
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
+import torchvision.utils as utils
 import matplotlib.pyplot as plt
 from torch.utils.tensorboard import SummaryWriter
 
@@ -37,7 +38,11 @@ class Trainer():
         # Adam optimizer -> Stochastic Optimization
 
         self.lossFun = nn.BCELoss() # Binary cross entropy, Prend 2 paramètres
-        self.writter = SummaryWriter() # logger pour tensorboard
+        self.writter = SummaryWriter(log_dir='log/loss', comment='Training loss') # logger pour tensorboard
+
+
+    def __del__(self):
+        self.writter.close()
 
     # Entraine le modèle du generator
     def trainGNet(self, fakeData):
@@ -55,7 +60,6 @@ class Trainer():
     # Entraine le modèle du discriminant
     def trainDNet(self, realData, fakeData):
         self.DOpti.zero_grad()
-
         realRes = self.DNet(realData)
         sizeAvrg = torch.ones(fakeData.size(0), 1)
         realErr = self.lossFun(realRes, sizeAvrg)
@@ -79,10 +83,10 @@ class Trainer():
                 s = batch.size(0)
 
                 real = self.preprocess(batch, 784)
-                fake = self.GNet(self.createNoise(s)).detach()
-                DResult = self.trainDNet(real, fake)
-
                 fake = self.GNet(self.createNoise(s))
+                DResult = self.trainDNet(real, fake.detach())
+
+                # fake = self.GNet(self.createNoise(s))
                 GError = self.trainGNet(fake)
 
 
@@ -96,6 +100,10 @@ class Trainer():
         print("==========================================")
         self.writter.add_scalar('Loss/Generator', GLoss, epoch)
         self.writter.add_scalar('Loss/Discriminator', DLoss, epoch)
+        self.writter.add_scalars('Loss/Generator+Discriminator', {
+            'Generator': GLoss,
+            'Discriminator': DLoss
+        }, epoch)
 
     def save(self, Gpath, Dpath):
         torch.save(self.GNet.state_dict(), Gpath)
