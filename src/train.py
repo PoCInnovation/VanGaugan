@@ -8,21 +8,23 @@ import torchvision.utils as utils
 import matplotlib.pyplot as plt
 from torch.utils.tensorboard import SummaryWriter
 
-from generator import Generator, getImage
-from discriminator import Discriminator
+from generator import Generator, getImage, CGenerator
+from discriminator import Discriminator, CDiscriminator
 from sys import argv, exit
 
 BS = 128 # Batch size
 LR = 0.0002 # Learning Rate
+IMG_SIZE = 64
 
 mnistLoader = torch.utils.data.DataLoader( # Load MNIST DATASET
     dset.MNIST(
         './dataset',
-        train=False,
+        train=True,
         download=True,
         transform=transforms.Compose([
+            transforms.Resize(IMG_SIZE),
             transforms.ToTensor(),
-            transforms.Normalize((0.5,), (0.5,))
+            transforms.Normalize([0.5], [0.5])
             ])
         ),
     batch_size=BS, shuffle=True
@@ -30,8 +32,11 @@ mnistLoader = torch.utils.data.DataLoader( # Load MNIST DATASET
 
 class Trainer():
     def __init__(self):
-        self.GNet = Generator()
-        self.DNet = Discriminator()
+        self.GNet = CGenerator()
+        self.DNet = CDiscriminator()
+
+        self.GNet.init_weight()
+        self.DNet.init_weight()
 
         self.GOpti = optim.Adam(self.GNet.parameters(), lr=LR)
         self.DOpti = optim.Adam(self.DNet.parameters(), lr=LR)
@@ -47,9 +52,9 @@ class Trainer():
     # Entraine le modèle du generator
     def trainGNet(self, fakeData):
         self.GOpti.zero_grad()
-        result = self.DNet(fakeData)
+        result = self.DNet(fakeData).squeeze()
 
-        sizeAvrg = torch.ones(fakeData.size(0), 1)
+        sizeAvrg = torch.ones(fakeData.size(0))
         err = self.lossFun(result, sizeAvrg)
         err.backward()
 
@@ -60,13 +65,13 @@ class Trainer():
     # Entraine le modèle du discriminant
     def trainDNet(self, realData, fakeData):
         self.DOpti.zero_grad()
-        realRes = self.DNet(realData)
-        sizeAvrg = torch.ones(fakeData.size(0), 1)
+        realRes = self.DNet(realData).squeeze()
+        sizeAvrg = torch.ones(fakeData.size(0))
         realErr = self.lossFun(realRes, sizeAvrg)
         realErr.backward()
 
-        fakeRes = self.DNet(fakeData)
-        sizeAvrg = torch.zeros(fakeData.size(0), 1)
+        fakeRes = self.DNet(fakeData).squeeze()
+        sizeAvrg = torch.zeros(fakeData.size(0))
         fakeErr = self.lossFun(fakeRes, sizeAvrg)
         fakeErr.backward()
 
@@ -79,16 +84,16 @@ class Trainer():
 
     def __call__(self, epoch, loader):
         for e in range(epoch):
-            for i, (batch, _) in enumerate(loader):
-                s = batch.size(0)
+            i = 0
+            for batch, _ in loader:
+                s = batch.size()[0]
 
-                real = self.preprocess(batch, 784)
+                real = batch
                 fake = self.GNet(self.createNoise(s))
                 DResult = self.trainDNet(real, fake.detach())
 
-                # fake = self.GNet(self.createNoise(s))
+                fake = self.GNet(self.createNoise(s))
                 GError = self.trainGNet(fake)
-
 
             self.log(e, DResult['error'], GError)
 
@@ -111,7 +116,7 @@ class Trainer():
 
     # renvoie un vecteur normalisé de shape (1, BS)input pour le generator
     def createNoise(self, n):
-        return torch.randn(n, BS)
+        return torch.randn(n, 100).view(-1, 100, 1, 1)
 
     def preprocess(self, rawData, nout):
         return rawData.view(rawData.size(0), nout)
