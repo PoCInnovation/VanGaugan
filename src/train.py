@@ -24,7 +24,7 @@ mnistLoader = torch.utils.data.DataLoader( # Load MNIST DATASET
         transform=transforms.Compose([
             transforms.Resize(IMG_SIZE),
             transforms.ToTensor(),
-            transforms.Normalize([0.5], [0.5])
+            transforms.Normalize((0.5,), (0.5,))
             ])
         ),
     batch_size=BS, shuffle=True
@@ -84,10 +84,9 @@ class Trainer():
 
     def __call__(self, epoch, loader):
         for e in range(epoch):
-            i = 0
-            for batch, _ in loader:
+            for i, (batch, _) in loader:
                 s = batch.size()[0]
-
+                print("i = ", i)
                 real = batch
                 fake = self.GNet(self.createNoise(s))
                 DResult = self.trainDNet(real, fake.detach())
@@ -129,15 +128,14 @@ def loadModel(path, Model):
     model = Model()
     try:
         model.load_state_dict(torch.load(path))
-    except:
-        exit(f"Error : {path} : invalid model path.")
+    except Exception as error:
+        exit(f"Error : {path} : {error}")
     return model
 
 def load_and_show(path):
-    GNet = loadModel(path, Generator)
-    rand_tensor = torch.randn(1, BS)
-    print(rand_tensor.mean())
-    res = GNet(rand_tensor)
+    GNet = loadModel(path, CGenerator)
+    rand_tensor = torch.randn(1, 100).view(-1, 100, 1, 1)
+    res = GNet(rand_tensor).squeeze()
     plt.imshow(getImage(res), cmap='gray')
     plt.show()
 
