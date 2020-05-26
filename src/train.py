@@ -84,7 +84,7 @@ class Trainer():
 
     def __call__(self, epoch, loader):
         for e in range(epoch):
-            for i, (batch, _) in loader:
+            for i, (batch, _) in enumerate(loader):
                 s = batch.size()[0]
                 print("i = ", i)
                 real = batch
