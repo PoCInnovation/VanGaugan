@@ -18,7 +18,7 @@ LR = 0.0002 # Learning Rate
 mnistLoader = torch.utils.data.DataLoader( # Load MNIST DATASET
     dset.MNIST(
         './dataset',
-        train=False,
+        train=True,
         download=True,
         transform=transforms.Compose([
             transforms.ToTensor(),
@@ -80,6 +80,7 @@ class Trainer():
     def __call__(self, epoch, loader):
         for e in range(epoch):
             for i, (batch, _) in enumerate(loader):
+                print("iteration = ", i)
                 s = batch.size(0)
 
                 real = self.preprocess(batch, 784)
