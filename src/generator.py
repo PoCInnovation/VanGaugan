@@ -30,8 +30,9 @@ class Generator(nn.Module): # Class to build generator model
 
 
 class CGenerator(nn.Module):
-    def __init__(self):
+    def __init__(self, ngpu):
         super(CGenerator, self).__init__()
+        self.ngpu = ngpu
         self.main = nn.Sequential(
             nn.ConvTranspose2d(nz, nf * 8, 4, 1, 0),
             nn.BatchNorm2d(nf * 8),

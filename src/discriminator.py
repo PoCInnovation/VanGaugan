@@ -29,8 +29,9 @@ class Discriminator(nn.Module):
         return self.main(input)
 
 class CDiscriminator(nn.Module):
-    def __init__(self):
+    def __init__(self, ngpu):
         super(CDiscriminator, self).__init__()
+        self.ngpu = ngpu
         self.main = nn.Sequential(
             nn.Conv2d(nc, nf, 4, 2, 1),
             nn.LeakyReLU(ns),

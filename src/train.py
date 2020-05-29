@@ -31,9 +31,18 @@ mnistLoader = torch.utils.data.DataLoader( # Load MNIST DATASET
 )
 
 class Trainer():
-    def __init__(self):
-        self.GNet = CGenerator()
-        self.DNet = CDiscriminator()
+    def __init__(self, ngpu):
+
+        device_type = "cuda:0" if torch.cuda.is_available() and ngpu > 0 else "cpu"
+        self.device = torch.device(device_type)
+
+        self.GNet = CGenerator(ngpu).to(self.device)
+        self.DNet = CDiscriminator(ngpu).to(self.device)
+
+        if self.device.type == "cuda" and ngpu > 1:
+            device_ids = list(range(ngpu))
+            self.GNet = nn.DataParallel(self.GNet, device_ids=device_ids)
+            self.DNet = nn.DataParallel(self.DNet, device_ids=device_ids)
 
         self.GNet.init_weight()
         self.DNet.init_weight()
@@ -50,12 +59,13 @@ class Trainer():
         self.writter.close()
 
     # Entraine le modèle du generator
-    def trainGNet(self, fakeData):
+    def trainGNet(self, fakeData, size):
+        # Call discriminator with fake data to compute generator loss
         self.GOpti.zero_grad()
         result = self.DNet(fakeData).squeeze()
 
-        sizeAvrg = torch.ones(fakeData.size(0))
-        err = self.lossFun(result, sizeAvrg)
+        expected = torch.ones(size)
+        err = self.lossFun(result, expected)
         err.backward()
 
         self.GOpti.step()
@@ -63,16 +73,19 @@ class Trainer():
 
 
     # Entraine le modèle du discriminant
-    def trainDNet(self, realData, fakeData):
+    def trainDNet(self, realData, fakeData, size):
         self.DOpti.zero_grad()
+
+        # Train with real data
         realRes = self.DNet(realData).squeeze()
-        sizeAvrg = torch.ones(fakeData.size(0))
-        realErr = self.lossFun(realRes, sizeAvrg)
+        expected = torch.ones(size)
+        realErr = self.lossFun(realRes, expected)
         realErr.backward()
 
+        # Train with fake data
         fakeRes = self.DNet(fakeData).squeeze()
-        sizeAvrg = torch.zeros(fakeData.size(0))
-        fakeErr = self.lossFun(fakeRes, sizeAvrg)
+        expected = torch.zeros(size)
+        fakeErr = self.lossFun(fakeRes, expected)
         fakeErr.backward()
 
         self.DOpti.step()
@@ -85,14 +98,13 @@ class Trainer():
     def __call__(self, epoch, loader):
         for e in range(epoch):
             for i, (batch, _) in enumerate(loader):
-                s = batch.size()[0]
-                print("i = ", i)
-                real = batch
-                fake = self.GNet(self.createNoise(s))
-                DResult = self.trainDNet(real, fake.detach())
+                real = batch.to(self.device)
+                size = real.size(0)
+                fake = self.GNet(self.createNoise(size))
+                DResult = self.trainDNet(real, fake.detach(), size)
 
-                fake = self.GNet(self.createNoise(s))
-                GError = self.trainGNet(fake)
+                fake = self.GNet(self.createNoise(size))
+                GError = self.trainGNet(fake, size)
 
             self.log(e, DResult['error'], GError)
 
@@ -115,7 +127,7 @@ class Trainer():
 
     # renvoie un vecteur normalisé de shape (1, BS)input pour le generator
     def createNoise(self, n):
-        return torch.randn(n, 100).view(-1, 100, 1, 1)
+        return torch.randn(n, 100, 1, 1, device=self.device)
 
     def preprocess(self, rawData, nout):
         return rawData.view(rawData.size(0), nout)

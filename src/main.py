@@ -14,6 +14,7 @@ def parseArgs():
     parser_2.add_argument("-e", "--epoch", type=int, help="epoch number")
     parser_2.add_argument("-g", "--generator", help="generator model output file")
     parser_2.add_argument("-d", "--discriminator", help="discriminator model output file")
+    parser_2.add_argument("-n", "--ngpu", help="number of GPU to use", default=0)
 
     return parser.parse_args()
 
@@ -23,7 +24,7 @@ def main():
         return 84
     args = parseArgs()
     if "epoch" in args:
-        t = Trainer()
+        t = Trainer(args.ngpu)
         t(args.epoch, mnistLoader)
         t.save(args.generator, args.discriminator)
         del t
