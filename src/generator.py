@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torch.utils.tensorboard import SummaryWriter
+#from torch.utils.tensorboard import SummaryWriter
 
 nout = 784 # Number of output, 28 * 28
 nf = 128 # Number of feature maps

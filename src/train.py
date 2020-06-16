@@ -6,7 +6,7 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as utils
 import matplotlib.pyplot as plt
-from torch.utils.tensorboard import SummaryWriter
+#from torch.utils.tensorboard import SummaryWriter
 
 from generator import Generator, getImage, CGenerator
 from discriminator import Discriminator, CDiscriminator
@@ -33,16 +33,20 @@ mnistLoader = torch.utils.data.DataLoader( # Load MNIST DATASET
 class Trainer():
     def __init__(self, ngpu):
 
+        print(torch.cuda.is_available())
         device_type = "cuda:0" if torch.cuda.is_available() and ngpu > 0 else "cpu"
         self.device = torch.device(device_type)
 
         self.GNet = CGenerator(ngpu).to(self.device)
         self.DNet = CDiscriminator(ngpu).to(self.device)
 
+        print(device_type)
+        print(self.device.type)
         if self.device.type == "cuda" and ngpu > 1:
             device_ids = list(range(ngpu))
             self.GNet = nn.DataParallel(self.GNet, device_ids=device_ids)
             self.DNet = nn.DataParallel(self.DNet, device_ids=device_ids)
+            print("GPU OK")
 
         self.GNet.init_weight()
         self.DNet.init_weight()
@@ -52,11 +56,12 @@ class Trainer():
         # Adam optimizer -> Stochastic Optimization
 
         self.lossFun = nn.BCELoss() # Binary cross entropy, Prend 2 paramètres
-        self.writter = SummaryWriter(log_dir='log/loss', comment='Training loss') # logger pour tensorboard
+ #       self.writter = SummaryWriter(log_dir='log/loss', comment='Training loss') # logger pour tensorboard
 
 
     def __del__(self):
-        self.writter.close()
+        None
+        #self.writter.close()
 
     # Entraine le modèle du generator
     def trainGNet(self, fakeData, size):
@@ -64,7 +69,7 @@ class Trainer():
         self.GOpti.zero_grad()
         result = self.DNet(fakeData).squeeze()
 
-        expected = torch.ones(size)
+        expected = torch.ones(size, device=self.device)
         err = self.lossFun(result, expected)
         err.backward()
 
@@ -78,13 +83,13 @@ class Trainer():
 
         # Train with real data
         realRes = self.DNet(realData).squeeze()
-        expected = torch.ones(size)
+        expected = torch.ones(size, device=self.device)
         realErr = self.lossFun(realRes, expected)
         realErr.backward()
 
         # Train with fake data
         fakeRes = self.DNet(fakeData).squeeze()
-        expected = torch.zeros(size)
+        expected = torch.zeros(size, device=self.device)
         fakeErr = self.lossFun(fakeRes, expected)
         fakeErr.backward()
 
@@ -115,12 +120,12 @@ class Trainer():
         print(f"Discriminator Loss : {DLoss}")
         print(f"Generator Loss : {GLoss}")
         print("==========================================")
-        self.writter.add_scalar('Loss/Generator', GLoss, epoch)
-        self.writter.add_scalar('Loss/Discriminator', DLoss, epoch)
-        self.writter.add_scalars('Loss/Generator+Discriminator', {
-            'Generator': GLoss,
-            'Discriminator': DLoss
-        }, epoch)
+  #      self.writter.add_scalar('Loss/Generator', GLoss, epoch)
+   #     self.writter.add_scalar('Loss/Discriminator', DLoss, epoch)
+    #    self.writter.add_scalars('Loss/Generator+Discriminator', {
+     #       'Generator': GLoss,
+      #      'Discriminator': DLoss
+       # }, epoch)
 
     def save(self, Gpath, Dpath):
         torch.save(self.GNet.state_dict(), Gpath)

@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torch.utils.tensorboard import SummaryWriter
+#from torch.utils.tensorboard import SummaryWriter
 
 nf = 128 # nombre de features
 nout = 1 # 1 output : sortie binaire
