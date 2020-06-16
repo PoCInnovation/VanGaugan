@@ -103,7 +103,7 @@ class Trainer():
     def __call__(self, epoch, loader):
         for e in range(epoch):
             for i, (batch, _) in enumerate(loader):
-                print(f"iteration = {i}")
+                #print(f"iteration = {i}")
                 real = batch.to(self.device)
                 size = real.size(0)
                 fake = self.GNet(self.createNoise(size))
