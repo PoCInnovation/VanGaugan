@@ -143,7 +143,7 @@ class Trainer():
 
 
 def loadModel(path, Model):
-    model = Model()
+    model = Model(0)
     try:
         model.load_state_dict(torch.load(path))
     except Exception as error:
@@ -154,7 +154,7 @@ def load_and_show(path):
     GNet = loadModel(path, CGenerator)
     rand_tensor = torch.randn(1, 100).view(-1, 100, 1, 1)
     res = GNet(rand_tensor).squeeze()
-    plt.imshow(getImage(res), cmap='gray')
+    plt.imshow(getImage(res).detach().numpy(), cmap='gray')
     plt.show()
 
 if __name__ == "__main__":

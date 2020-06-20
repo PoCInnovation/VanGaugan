@@ -9,7 +9,7 @@ nz = 100
 nc = 1
 
 def getImage(vectors):
-    return vectors.view(vectors.size(0), 1, 28, 28).data[0][0] # Convert vector generator output to 28 * 28 image
+    return vectors.view(vectors.size(0),-1) # Convert vector generator output to 28 * 28 image
 
 class Generator(nn.Module): # Class to build generator model
     def __init__(self):
