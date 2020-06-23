@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from generator import Generator, getImage, CGenerator
 from discriminator import Discriminator, CDiscriminator
 from sys import argv, exit
+from datetime import date
 
 BS = 128 # Batch size
 LR = 0.0002 # Learning Rate
@@ -111,8 +112,9 @@ class Trainer():
 
                 fake = self.GNet(self.createNoise(size))
                 GError = self.trainGNet(fake, size)
-
             self.log(e, DResult['error'], GError)
+            self.save("./models/default/" + str(date.today()) + "_g_" + str(i),
+                "./models/default/" + str(date.today()) + "_d_" + str(i))
 
 
     def log(self, epoch, DLoss, GLoss):
