@@ -1,11 +1,12 @@
 import torch
 import torch.nn as nn
-from torch.utils.tensorboard import SummaryWriter
+#from torch.utils.tensorboard import SummaryWriter
 
-nf = 784 # nombre de features : 784 pixels (28 * 28)
+nf = 128 # nombre de features
 nout = 1 # 1 output : sortie binaire
 ns = 0.2 # Negative slope pour LeakyRelu
 p = 0.3 # probabilité pour Dropout layer
+nc = 1 # number of c
 
 class Discriminator(nn.Module):
     def __init__(self):
@@ -27,8 +28,37 @@ class Discriminator(nn.Module):
     def forward(self, input):
         return self.main(input)
 
-with SummaryWriter(log_dir='log/discriminator', comment='Generator network') as sw:
-    sw.add_graph(Discriminator(), torch.zeros(nf))
+class CDiscriminator(nn.Module):
+    def __init__(self, ngpu):
+        super(CDiscriminator, self).__init__()
+        self.ngpu = ngpu
+        self.main = nn.Sequential(
+            nn.Conv2d(nc, nf, 4, 2, 1),
+            nn.LeakyReLU(ns),
+            nn.Conv2d(nf, nf * 2, 4, 2, 1),
+            nn.BatchNorm2d(nf * 2),
+            nn.LeakyReLU(ns),
+            nn.Conv2d(nf * 2, nf * 4, 4, 2, 1),
+            nn.BatchNorm2d(nf * 4),
+            nn.LeakyReLU(ns),
+            nn.Conv2d(nf * 4, nf * 8, 4, 2, 1),
+            nn.BatchNorm2d(nf * 8),
+            nn.LeakyReLU(ns),
+            nn.Conv2d(nf * 8, 1, 4, 1, 0),
+            nn.Sigmoid()
+        )
+
+    def forward(self, input):
+        return self.main(input)
+
+    def init_weight(self):
+        for it in self._modules:
+            if isinstance(self._modules[it], nn.Conv2d):
+                self._modules[it].weight.data.normal_(0.0, 0.02)
+                self._modules[it].bias.data.zero_()
+
+# with SummaryWriter(log_dir='log/discriminator', comment='Generator network') as sw:
+#     sw.add_graph(CDiscriminator(), torch.zeros(nf))
 
 
 if __name__ == "__main__":
