@@ -6,7 +6,7 @@ nout = 784 # Number of output, 28 * 28
 nf = 128 # Number of feature maps
 ns = 0.2 # Negative slope for LeakyReLU
 nz = 100
-nc = 1
+nc = 3
 
 def getImage(vectors):
     return vectors

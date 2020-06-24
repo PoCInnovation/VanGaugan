@@ -16,24 +16,41 @@ from datetime import date
 BS = 128 # Batch size
 LR = 0.0002 # Learning Rate
 IMG_SIZE = 64
+CELEBA_DIR="dataset/CelebA/"
 
-mnistLoader = torch.utils.data.DataLoader( # Load MNIST DATASET
-    dset.MNIST(
-        './dataset',
-        train=True,
-        download=True,
-        transform=transforms.Compose([
-            transforms.Resize(IMG_SIZE),
-            transforms.ToTensor(),
-            transforms.Normalize((0.5,), (0.5,))
+def loadMnistDataset():
+    return torch.utils.data.DataLoader( # Load MNIST DATASET
+        dset.MNIST(
+            './dataset',
+            train=True,
+            download=True,
+            transform=transforms.Compose([
+                transforms.Resize(IMG_SIZE),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5,), (0.5,))
+                ])
+            ),
+        batch_size=BS, shuffle=True
+    )
+
+def loadCelebADataset():
+    return torch.utils.data.DataLoader(
+        dset.ImageFolder(
+            root=CELEBA_DIR,
+            transform=transforms.Compose([
+                transforms.Resize(IMG_SIZE),
+                transforms.CenterCrop(IMG_SIZE),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
             ])
         ),
-    batch_size=BS, shuffle=True
-)
+        batch_size=BS,
+        shuffle=True,
+        num_workers=2
+    )
 
 class Trainer():
     def __init__(self, ngpu):
-
         print(torch.cuda.is_available())
         device_type = "cuda:0" if torch.cuda.is_available() and ngpu > 0 else "cpu"
         self.device = torch.device(device_type)
@@ -104,7 +121,6 @@ class Trainer():
     def __call__(self, epoch, loader):
         for e in range(epoch):
             for i, (batch, _) in enumerate(loader):
-                #print(f"iteration = {i}")
                 real = batch.to(self.device)
                 size = real.size(0)
                 fake = self.GNet(self.createNoise(size))

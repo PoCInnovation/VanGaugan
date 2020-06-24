@@ -6,7 +6,7 @@ nf = 128 # nombre de features
 nout = 1 # 1 output : sortie binaire
 ns = 0.2 # Negative slope pour LeakyRelu
 p = 0.3 # probabilité pour Dropout layer
-nc = 1 # number of c
+nc = 3 # number of c
 
 class Discriminator(nn.Module):
     def __init__(self):
