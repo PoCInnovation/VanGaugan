@@ -9,7 +9,17 @@ nz = 100
 nc = 1
 
 def getImage(vectors):
-    return vectors.view(vectors.size(0),-1) # Convert vector generator output to 28 * 28 image
+    return vectors
+    # return vectors
+    # # return vectors.view(64, 64, 28, 28)
+    # return (nn.functional.adaptive_avg_pool1d(vectors, (28, 28))).data
+    # return vectors.view(-1, 28, 28)
+    # return vectors.reshape(-1, 28, 28)
+    print(type(vectors))
+    print(vectors.shape)
+    ret = vectors.view(vectors.size(0), -1)
+    print(ret.shape)
+    return ret # Convert vector generator output to 28 * 28 image
 
 class Generator(nn.Module): # Class to build generator model
     def __init__(self):

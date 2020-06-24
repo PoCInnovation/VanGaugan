@@ -147,7 +147,7 @@ class Trainer():
 def loadModel(path, Model):
     model = Model(0)
     try:
-        model.load_state_dict(torch.load(path))
+        model.load_state_dict(torch.load(path, map_location='cpu'))
     except Exception as error:
         exit(f"Error : {path} : {error}")
     return model
