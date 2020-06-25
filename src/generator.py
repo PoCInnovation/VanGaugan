@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from numpy import uint8
 #from torch.utils.tensorboard import SummaryWriter
 
 nout = 784 # Number of output, 28 * 28
@@ -9,17 +10,8 @@ nz = 100
 nc = 3
 
 def getImage(vectors):
-    return vectors
-    # return vectors
-    # # return vectors.view(64, 64, 28, 28)
-    # return (nn.functional.adaptive_avg_pool1d(vectors, (28, 28))).data
-    # return vectors.view(-1, 28, 28)
-    # return vectors.reshape(-1, 28, 28)
-    print(type(vectors))
-    print(vectors.shape)
-    ret = vectors.view(vectors.size(0), -1)
-    print(ret.shape)
-    return ret # Convert vector generator output to 28 * 28 image
+    image = vectors.permute(1, 2, 0).detach().numpy()
+    return (image * 255).astype(uint8)
 
 class Generator(nn.Module): # Class to build generator model
     def __init__(self):

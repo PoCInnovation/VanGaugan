@@ -171,9 +171,10 @@ def loadModel(path, Model):
 
 def load_and_show(path):
     GNet = loadModel(path, CGenerator)
-    rand_tensor = torch.randn(1, 100).view(-1, 100, 1, 1)
+    rand_tensor = torch.randn(1, 100, 1, 1)
     res = GNet(rand_tensor).squeeze()
-    plt.imshow(getImage(res).detach().numpy(), cmap='gray')
+    img = getImage(res)
+    plt.imshow(img)
     plt.show()
 
 if __name__ == "__main__":
