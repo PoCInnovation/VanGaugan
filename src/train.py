@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 from generator import Generator, getImage, CGenerator
 from discriminator import Discriminator, CDiscriminator
-from sys import argv, exit
+from sys import argv, exit, stderr
 from datetime import date
 
 BS = 128 # Batch size
@@ -129,8 +129,9 @@ class Trainer():
                 fake = self.GNet(self.createNoise(size))
                 GError = self.trainGNet(fake, size)
             self.log(e, DResult['error'], GError)
-            self.save("./models/default/" + str(date.today()) + "_g_" + str(i),
-                "./models/default/" + str(date.today()) + "_d_" + str(i))
+            print(f"Epoch {e + 1} done", file=stderr)
+            self.save("./models/default/" + str(date.today()) + "_g_" + str(e + 1),
+                "./models/default/" + str(date.today()) + "_d_" + str(e + 1))
 
 
     def log(self, epoch, DLoss, GLoss):
