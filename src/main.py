@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from sys import exit, argv, stderr, path
 path.append("./src")
-from train import Trainer, load_and_show, loadCelebADataset
+from train import Trainer, load_and_show, loadCelebADataset, make_grid
 
 def parseArgs():
     parser = ArgumentParser()
@@ -29,7 +29,7 @@ def main():
         t.save(args.generator, args.discriminator)
         del t
     elif "filepath" in args:
-        load_and_show(args.filepath)
+        make_grid(args.filepath)
     return 0
 
 

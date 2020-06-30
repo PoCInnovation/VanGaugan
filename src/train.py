@@ -6,6 +6,7 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as utils
 import matplotlib.pyplot as plt
+import numpy as np
 #from torch.utils.tensorboard import SummaryWriter
 
 from generator import Generator, getImage, CGenerator
@@ -175,6 +176,18 @@ def load_and_show(path):
     res = GNet(rand_tensor).squeeze()
     img = getImage(res)
     plt.imshow(img)
+    plt.show()
+
+def make_grid(modelPath):
+    Gnet = loadModel(modelPath, CGenerator)
+    rand_tensor = torch.randn(64, 100, 1, 1)
+    output = Gnet(rand_tensor).squeeze()
+    plt.figure(figsize=(8, 8))
+    plt.axis("off")
+    plt.title("Generated images")
+    grid = utils.make_grid(output, padding=2, normalize=True)
+    image = ((grid.permute(1, 2, 0).detach().numpy()))
+    plt.imshow(image)
     plt.show()
 
 if __name__ == "__main__":
