@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 from sys import exit, argv, stderr, path
 path.append("./src")
 from train import Trainer, load_and_show, loadCelebADataset, make_grid, createTrainGif
+from app import run_model_api
 
 def parseArgs():
     parser = ArgumentParser()
@@ -20,6 +21,9 @@ def parseArgs():
     parser_3.add_argument("-md", "--models_dir", type=str, help="directory with models")
     parser_3.add_argument("-o", "--output", type=str, help="gif output")
 
+    parser_4 = sub.add_parser("serve", help="serve model using HTTP api")
+    parser_4.add_argument("-gp", "--generator_path", type=str, help="generator file path")
+
     return parser.parse_args()
 
 def main():
@@ -36,6 +40,8 @@ def main():
         make_grid(args.filepath)
     elif "models_dir" in args:
         createTrainGif(args.models_dir, args.output)
+    elif "generator_path" in args:
+        run_model_api(args.generator_path)
     return 0
 
 
