@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from sys import exit, argv, stderr, path
 path.append("./src")
-from train import Trainer, load_and_show, loadCelebADataset, make_grid
+from train import Trainer, load_and_show, loadCelebADataset, make_grid, createTrainGif
 
 def parseArgs():
     parser = ArgumentParser()
@@ -15,6 +15,10 @@ def parseArgs():
     parser_2.add_argument("-g", "--generator", help="generator model output file")
     parser_2.add_argument("-d", "--discriminator", help="discriminator model output file")
     parser_2.add_argument("-n", "--ngpu", type=int, help="number of GPU to use", default=0)
+
+    parser_3 = sub.add_parser("gif", help="create a training gif")
+    parser_3.add_argument("-md", "--models_dir", type=str, help="directory with models")
+    parser_3.add_argument("-o", "--output", type=str, help="gif output")
 
     return parser.parse_args()
 
@@ -30,6 +34,8 @@ def main():
         del t
     elif "filepath" in args:
         make_grid(args.filepath)
+    elif "models_dir" in args:
+        createTrainGif(args.models_dir, args.output)
     return 0
 
 

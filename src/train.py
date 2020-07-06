@@ -7,12 +7,15 @@ import torchvision.transforms as transforms
 import torchvision.utils as utils
 import matplotlib.pyplot as plt
 import numpy as np
+from torchvision.utils import save_image
+import imageio
 #from torch.utils.tensorboard import SummaryWriter
 
 from generator import Generator, getImage, CGenerator
 from discriminator import Discriminator, CDiscriminator
 from sys import argv, exit, stderr
-from datetime import date
+from datetime import date, datetime
+from os import listdir
 
 BS = 128 # Batch size
 LR = 0.0002 # Learning Rate
@@ -189,6 +192,24 @@ def make_grid(modelPath):
     image = ((grid.permute(1, 2, 0).detach().numpy()))
     plt.imshow(image)
     plt.show()
+    save_image(grid, f"{modelPath.split('/').pop()}{datetime.now()}.png")
+
+def createTrainGif(dirPath, gifPath):
+    models = listdir(dirPath)
+    models.sort(key=lambda it: int(it.split("_").pop()))
+    images = []
+    rand_tensor = torch.randn(64, 100, 1, 1)
+
+    for fp in models:
+        print(f"Predicting with model {fp}...")
+        GNet = loadModel(f"{dirPath}/{fp}", CGenerator)
+        output = GNet(rand_tensor).squeeze()
+        grid = utils.make_grid(output, padding=2, normalize=True)
+        images.append(getImage(grid))
+    imageio.mimsave(gifPath, images, format="GIF", fps=3)
+    print(f"gife saved as {gifPath}")
+
+
 
 if __name__ == "__main__":
     load_and_show("./models/genator_50_e")
