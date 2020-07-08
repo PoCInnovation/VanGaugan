@@ -36,7 +36,7 @@ def main():
     args = parseArgs()
     if "epoch" in args:
         t = Trainer(args.ngpu)
-        t(args.epoch, loadDataset(CELEBA_DIR))
+        t(args.epoch, loadDataset(ARTWORKS_DIR))
         t.save(args.generator, args.discriminator)
         del t
     elif "filepath" in args:
