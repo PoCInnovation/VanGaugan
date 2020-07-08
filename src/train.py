@@ -20,7 +20,6 @@ from os import listdir
 BS = 128 # Batch size
 LR = 0.0002 # Learning Rate
 IMG_SIZE = 64
-CELEBA_DIR="dataset/CelebA/"
 
 def loadMnistDataset():
     return torch.utils.data.DataLoader( # Load MNIST DATASET
@@ -37,10 +36,10 @@ def loadMnistDataset():
         batch_size=BS, shuffle=True
     )
 
-def loadCelebADataset():
+def loadDataset(datasetPath):
     return torch.utils.data.DataLoader(
         dset.ImageFolder(
-            root=CELEBA_DIR,
+            root=datasetPath,
             transform=transforms.Compose([
                 transforms.Resize(IMG_SIZE),
                 transforms.CenterCrop(IMG_SIZE),

@@ -1,8 +1,11 @@
 from argparse import ArgumentParser
 from sys import exit, argv, stderr, path
 path.append("./src")
-from train import Trainer, load_and_show, loadCelebADataset, make_grid, createTrainGif
+from train import Trainer, load_and_show, loadDataset, make_grid, createTrainGif
 from app import run_model_api
+
+CELEBA_DIR="dataset/CelebA/"
+ARTWORKS_DIR="dataset/artworks/"
 
 def parseArgs():
     parser = ArgumentParser()
@@ -33,7 +36,7 @@ def main():
     args = parseArgs()
     if "epoch" in args:
         t = Trainer(args.ngpu)
-        t(args.epoch, loadCelebADataset())
+        t(args.epoch, loadDataset(CELEBA_DIR))
         t.save(args.generator, args.discriminator)
         del t
     elif "filepath" in args:
