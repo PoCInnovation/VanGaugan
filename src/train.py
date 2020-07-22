@@ -9,6 +9,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from torchvision.utils import save_image
 import imageio
+from PIL import ImageFile
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 #from torch.utils.tensorboard import SummaryWriter
 
 from generator import Generator, getImage, CGenerator

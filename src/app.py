@@ -18,7 +18,7 @@ GManager = GeneratorManager()
 def run_model_api():
     app.run(host=HOST, port=PORT)
 
-@app.route("/<model_type>", methods=["GET"])
+@app.route("/api/<model_type>", methods=["GET"])
 def predict(model_type):
     if not GType.has_value(model_type):
         return abort(404, f"{model_type} model doesn't exist")
