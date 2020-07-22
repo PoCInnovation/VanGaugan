@@ -6,6 +6,7 @@ from app import run_model_api
 
 CELEBA_DIR="dataset/CelebA/"
 ARTWORKS_DIR="dataset/artworks/"
+WIKIART="dataset/wikiart"
 
 def parseArgs():
     parser = ArgumentParser()
@@ -36,7 +37,7 @@ def main():
     args = parseArgs()
     if "epoch" in args:
         t = Trainer(args.ngpu)
-        t(args.epoch, loadDataset(ARTWORKS_DIR))
+        t(args.epoch, loadDataset(WIKIART))
         t.save(args.generator, args.discriminator)
         del t
     elif "filepath" in args:
