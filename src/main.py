@@ -44,7 +44,7 @@ def main():
     elif "models_dir" in args:
         createTrainGif(args.models_dir, args.output)
     elif "generator_path" in args:
-        run_model_api(args.generator_path)
+        run_model_api()
     return 0
 
 

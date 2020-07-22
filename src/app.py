@@ -3,26 +3,28 @@ import torch
 import torchvision.utils as utils
 import io
 from PIL import Image
+from enum import Enum, auto
 
 from train import loadModel
 from generator import CGenerator, getImage
+from GeneratorManager import GeneratorManager, GType
 
 HOST = "0.0.0.0"
 PORT = 8080
 
 app = Flask(__name__)
-generator = None
+GManager = GeneratorManager()
 
-def run_model_api(modelPath):
-    global generator
-
-    generator = loadModel(modelPath, CGenerator)
-
+def run_model_api():
     app.run(host=HOST, port=PORT)
 
-@app.route("/", methods=["GET"])
-def predict():
+@app.route("/<model_type>", methods=["GET"])
+def predict(model_type):
+    if not GType.has_value(model_type):
+        return abort(404, f"{model_type} model doesn't exist")
+
     image_number = 1
+    label = request.args.get("label")
 
     if request.args.get("image_number") is not None:
         try:
@@ -31,13 +33,6 @@ def predict():
         except:
             return abort(400, "Invalid image number")
 
-    rand_tensor = torch.randn(64, 100, 1, 1)
-    output = generator(rand_tensor).squeeze()
-    grid = utils.make_grid(output[:image_number], padding=2, normalize=True)
+    image = GManager.generateImage(model_type, image_number, label)
 
-    image = Image.fromarray(getImage(grid))
-    buffer = io.BytesIO()
-    image.save(buffer, 'PNG')
-    buffer.seek(0)
-
-    return send_file(buffer, mimetype="image/PNG")
+    return send_file(image, mimetype="image/PNG")
