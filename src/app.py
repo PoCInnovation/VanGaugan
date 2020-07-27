@@ -1,4 +1,4 @@
-from flask import Flask, Response, send_file, request, abort
+from flask import Flask, Response, send_file, request, abort, jsonify
 import torch
 import torchvision.utils as utils
 import io
@@ -36,3 +36,7 @@ def predict(model_type):
     image = GManager.generateImage(model_type, image_number, label)
 
     return send_file(image, mimetype="image/PNG")
+
+@app.route("/api/list-models", methods=["GET"])
+def list_models():
+    return jsonify(list(map(lambda it: it.value, list(GType))))

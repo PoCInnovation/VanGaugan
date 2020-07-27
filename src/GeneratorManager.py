@@ -8,7 +8,9 @@ from train import loadModel
 from generator import CGenerator, getImage
 
 class GType(Enum):
-    CELEBA = "celeba"
+    CELEBA_30_E = "celeba-30-e"
+    CELEBA_20_E = "celeba-20-e"
+    CELEBA_10_E = "celeba-10-e"
 
     @classmethod
     def has_value(cls, value):
@@ -17,16 +19,18 @@ class GType(Enum):
 class GeneratorManager():
     def __init__(self):
         self.generators = {
-            GType.CELEBA.value: loadModel("models/celeba_30_g", CGenerator)
+            GType.CELEBA_30_E.value: loadModel("models/celeba_30_g", CGenerator),
+            GType.CELEBA_20_E.value: loadModel("models/default/2020-06-25_g_20", CGenerator),
+            GType.CELEBA_10_E.value: loadModel("models/default/2020-06-25_g_10", CGenerator)
         }
 
     def generateImage(self, g_type: GType, image_number, label = None):
         rand_tensor = rand_tensor = torch.randn(64, 100, 1, 1)
 
-        if label is not None and g_type != "celeba":
-            out_tensor = self.generators[g_type](rand_tensor, label).squeeze()
-        else:
-            out_tensor = self.generators[g_type](rand_tensor).squeeze()
+        # if label is not None:
+        #     out_tensor = self.generators[g_type](rand_tensor, label).squeeze()
+        # else:
+        out_tensor = self.generators[g_type](rand_tensor).squeeze()
 
         return self.__tensorToPNG(image_number, out_tensor)
 
