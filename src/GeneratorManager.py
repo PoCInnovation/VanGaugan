@@ -20,8 +20,8 @@ class GeneratorManager():
     def __init__(self):
         self.generators = {
             GType.CELEBA_30_E.value: loadModel("models/celeba_30_g", CGenerator),
-            GType.CELEBA_20_E.value: loadModel("models/default/2020-06-25_g_20", CGenerator),
-            GType.CELEBA_10_E.value: loadModel("models/default/2020-06-25_g_10", CGenerator)
+            GType.CELEBA_20_E.value: loadModel("models/2020-06-25_g_20", CGenerator),
+            GType.CELEBA_10_E.value: loadModel("models/2020-06-25_g_10", CGenerator)
         }
 
     def generateImage(self, g_type: GType, image_number, label = None):
