@@ -12,11 +12,15 @@ from GeneratorManager import GeneratorManager, GType
 HOST = "0.0.0.0"
 PORT = 8080
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='/html', static_url_path='/')
 GManager = GeneratorManager()
 
 def run_model_api():
     app.run(host=HOST, port=PORT)
+
+@app.route("/")
+def index():
+    return app.send_static_file('index.html')
 
 @app.route("/api/<model_type>", methods=["GET"])
 def predict(model_type):
