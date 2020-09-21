@@ -2,7 +2,9 @@ from argparse import ArgumentParser
 from sys import exit, argv, stderr, path
 path.append("./src")
 from train import Trainer, load_and_show, loadCelebADataset, make_grid, createTrainGif
+from wtrain import gen_fake_labels
 from app import run_model_api
+import random
 
 def parseArgs():
     parser = ArgumentParser()
@@ -16,6 +18,7 @@ def parseArgs():
     parser_2.add_argument("-g", "--generator", help="generator model output file")
     parser_2.add_argument("-d", "--discriminator", help="discriminator model output file")
     parser_2.add_argument("-n", "--ngpu", type=int, help="number of GPU to use", default=0)
+    parser_2.add_argument("-l", "--label", help="Image label to use for generation")
 
     parser_3 = sub.add_parser("gif", help="create a training gif")
     parser_3.add_argument("-md", "--models_dir", type=str, help="directory with models")
@@ -33,11 +36,18 @@ def main():
     args = parseArgs()
     if "epoch" in args:
         t = Trainer(args.ngpu)
-        t(args.epoch, loadCelebADataset())
+        t(args.epoch, loadCelebADataset()) # CustomCelebAdataset() to use with wtrainer
         t.save(args.generator, args.discriminator)
         del t
     elif "filepath" in args:
         make_grid(args.filepath)
+        # For wgan
+        # if args.label != None :
+        #     load_and_show(args.filepath, int(args.label) if args.label != None else random.randint(0, 9))
+        # else :
+        #     # generate random labels
+        #     fake_labels = gen_fake_labels(1)
+        #     load_and_show(args.filepath, fake_labels)
     elif "models_dir" in args:
         createTrainGif(args.models_dir, args.output)
     elif "generator_path" in args:
