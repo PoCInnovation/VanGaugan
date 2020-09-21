@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-#from torch.utils.tensorboard import SummaryWriter
 
 nf = 128 # nombre de features
 nout = 1 # 1 output : sortie binaire
@@ -57,9 +56,36 @@ class CDiscriminator(nn.Module):
                 self._modules[it].weight.data.normal_(0.0, 0.02)
                 self._modules[it].bias.data.zero_()
 
-# with SummaryWriter(log_dir='log/discriminator', comment='Generator network') as sw:
-#     sw.add_graph(CDiscriminator(), torch.zeros(nf))
+# Wassertein Conditionnal Deap Convolutionnal Discriminator (CelebA)
+class WCDC_Discriminator(nn.Module):
+    def __init__(self, ngpu):
+        super(WCDC_Discriminator, self).__init__()
+        self.ngpu = ngpu
+        self.main = nn.Sequential(
+            nn.Conv2d(nc, nf, 4, 2, 1),
+            nn.LeakyReLU(ns),
+            nn.Conv2d(nf, nf * 2, 4, 2, 1),
+            nn.BatchNorm2d(nf * 2),
+            nn.LeakyReLU(ns),
+            nn.Conv2d(nf * 2, nf * 4, 4, 2, 1),
+            nn.BatchNorm2d(nf * 4),
+            nn.LeakyReLU(ns),
+            nn.Conv2d(nf * 4, nf * 8, 4, 2, 1),
+            nn.BatchNorm2d(nf * 8),
+            nn.LeakyReLU(ns),
+            nn.Conv2d(nf * 8, 1, 4, 1, 0)
+        )
+    def forward(self, input, labels):
+        X = torch.cat([input, labels], 1)
+        output = self.main(X)
+        output = output.mean(0)
+        return output.view(1)
 
+    def init_weight(self):
+        for it in self._modules:
+            if isinstance(self._modules[it], nn.Conv2d):
+                self._modules[it].weight.data.normal_(0.0, 0.02)
+                self._modules[it].bias.data.zero_()
 
 if __name__ == "__main__":
     from generator import Generator

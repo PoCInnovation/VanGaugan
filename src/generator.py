@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 from numpy import uint8
-#from torch.utils.tensorboard import SummaryWriter
 
 nout = 784 # Number of output, 28 * 28
 nf = 128 # Number of feature maps
@@ -61,8 +60,39 @@ class CGenerator(nn.Module):
     def forward(self, input):
         return self.main(input)
 
-# with SummaryWriter(log_dir='log/generator', comment='Generator network') as sw:
-#     sw.add_graph(CGenerator(), torch.randn(1, nf))
+# Wassertein Conditionnal Deep Convolutionnal Generator (CelebA)
+class WCDC_Generator(nn.Module):
+    def __init__(self, ngpu):
+        super(WCDC_Generator, self).__init__()
+        self.ngpu = ngpu
+        self.main = nn.Sequential(
+            nn.ConvTranspose2d(nz, nf * 8, 4, 1, 0),
+            nn.BatchNorm2d(nf * 8),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(nf * 8, nf * 4, 4, 2, 1),
+            nn.BatchNorm2d(nf * 4),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(nf * 4, nf * 2, 4, 2, 1),
+            nn.BatchNorm2d(nf * 2),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(nf * 2, nf, 4, 2, 1),
+            nn.BatchNorm2d(nf),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(nf, nc, 4, 2, 1),
+            nn.Tanh()
+        )
+        self.label_emb = nn.Embedding(3,10)
+
+    def init_weight(self):
+        for it in self._modules:
+            if isinstance(self._modules[it], nn.ConvTranspose2d):
+                self._modules[it].weight.data.normal_(0.0, 0.02)
+                self._modules[it].bias.data.zero_()
+
+    def forward(self, input, labels):
+        Z = self.label_emb(labels)
+        X = torch.cat([input, Z[:, :, None, None]], 1)
+        return self.main(X)
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
