@@ -8,8 +8,6 @@ from pathlib import Path
 from torch.utils.data import Dataset
 from enum import Enum
 
-ATTRIBUTES = {'bald' : 4, 'black_hair' : 8, 'blond_hair' : 9, 'brown_hair' : 11, 'gray_hair' : 17, 'male' : 21}
-
 class CelebaDataset(Dataset) :
     def __init__(self, attr_path="./dataset/CelebA/list_attr_celeba.csv",img_dir="./dataset/CelebA/images", transform=None):
         self.img_dir = Path(img_dir)
