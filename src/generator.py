@@ -29,7 +29,30 @@ class Generator(nn.Module): # Class to build generator model
     def forward(self, input):
         return self.main(input)
 
-class CGenerator(nn.Module):
+class CGenerator(nn.Module): # Class to build generator model
+    def __init__(self):
+        super(Generator, self).__init__()
+
+        self.main = nn.Sequential(
+            nn.Linear(138, 256), # Transformation linéaire, y[256] = x[nf] * A^T + b
+            nn.LeakyReLU(ns), # Fonction d'activiation, minimise les valeurs nég, maximise les valeurs pos
+            nn.Linear(256, 512),
+            nn.LeakyReLU(ns),
+            nn.Linear(512, 1024),
+            nn.LeakyReLU(ns),
+            nn.Linear(1024, nout),
+            nn.Tanh() # Fonction d'activation, met les valeurs entre [-1;1]
+        )
+        self.label_emb = nn.Embedding(10, 10)
+
+    def forward(self, noise, labels):
+        noise = noise.view(noise.shape[0], -1)
+        c = self.label_emb(labels)
+        input = torch.cat([noise, c], 1)
+        out = self.main(input)
+        return (out)
+
+class DCGenerator(nn.Module):
     def __init__(self, ngpu):
         super(CGenerator, self).__init__()
         self.ngpu = ngpu

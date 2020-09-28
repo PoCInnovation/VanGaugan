@@ -36,7 +36,7 @@ def loadMnistDataset():
         batch_size=BS, shuffle=True
     )
 
-class cDCTrainer():
+class CDCTrainer():
     def __init__(self, ngpu):
         print(torch.cuda.is_available())
         device_type = "cuda:0" if torch.cuda.is_available() and ngpu >= 0 else "cpu"
