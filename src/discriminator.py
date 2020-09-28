@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 
-nf = 128 # nombre de features
-nout = 1 # 1 output : sortie binaire
-ns = 0.2 # Negative slope pour LeakyRelu
-p = 0.3 # probabilité pour Dropout layer
+nf = 128 # features number
+nout = 1 # 1 output : binaiy output
+ns = 0.2 # Negative slope for LeakyRelu
+p = 0.3 # Dropout layer porbability
 nc = 3 # number of c
 
 class Discriminator(nn.Module):
@@ -56,6 +56,37 @@ class CDiscriminator(nn.Module):
                 self._modules[it].weight.data.normal_(0.0, 0.02)
                 self._modules[it].bias.data.zero_()
 
+# Conditionnal Deep Convolutionnal GAN
+class cDCDiscriminator(nn.Module):
+    def __init__(self, ngpu):
+        super(CDiscriminator, self).__init__()
+        self.ngpu = ngpu
+        self.main = nn.Sequential(
+            nn.Conv2d(nc, nf, 4, 2, 1),
+            nn.LeakyReLU(ns),
+            nn.Conv2d(nf, nf * 2, 4, 2, 1),
+            nn.BatchNorm2d(nf * 2),
+            nn.LeakyReLU(ns),
+            nn.Conv2d(nf * 2, nf * 4, 4, 2, 1),
+            nn.BatchNorm2d(nf * 4),
+            nn.LeakyReLU(ns),
+            nn.Conv2d(nf * 4, nf * 8, 4, 2, 1),
+            nn.BatchNorm2d(nf * 8),
+            nn.LeakyReLU(ns),
+            nn.Conv2d(nf * 8, 1, 4, 1, 0),
+            nn.Sigmoid()
+        )
+
+    def forward(self, input, labels):
+        X = torch.cat([input, labels], 1)
+        return self.main(X)
+
+    def init_weight(self):
+        for it in self._modules:
+            if isinstance(self._modules[it], nn.Conv2d):
+                self._modules[it].weight.data.normal_(0.0, 0.02)
+                self._modules[it].bias.data.zero_()
+
 # Wassertein Conditionnal Deap Convolutionnal Discriminator (CelebA)
 class WCDC_Discriminator(nn.Module):
     def __init__(self, ngpu):
@@ -86,12 +117,3 @@ class WCDC_Discriminator(nn.Module):
             if isinstance(self._modules[it], nn.Conv2d):
                 self._modules[it].weight.data.normal_(0.0, 0.02)
                 self._modules[it].bias.data.zero_()
-
-if __name__ == "__main__":
-    from generator import Generator
-    G = Generator()
-    r = torch.randn(1, 128)
-    y = G(r)
-    D = Discriminator()
-    y_ = D(y)
-    print(y_)

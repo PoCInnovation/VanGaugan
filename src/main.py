@@ -54,6 +54,5 @@ def main():
         run_model_api(args.generator_path)
     return 0
 
-
 if __name__ == "__main__":
     exit(main())

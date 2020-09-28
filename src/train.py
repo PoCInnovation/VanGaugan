@@ -209,8 +209,6 @@ def createTrainGif(dirPath, gifPath):
     imageio.mimsave(gifPath, images, format="GIF", fps=3)
     print(f"gife saved as {gifPath}")
 
-
-
 if __name__ == "__main__":
     load_and_show("./models/genator_50_e")
     exit(0)

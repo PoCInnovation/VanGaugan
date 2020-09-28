@@ -11,16 +11,15 @@ from torch.utils.tensorboard import SummaryWriter
 from celeba_dataset import CelebaDataset
 from pathlib import Path
 
-from generator import Generator, getImage, CGenerator
-from discriminator import Discriminator, CDiscriminator
+from generator import Generator, getImage, CGenerator, cDCGenerator
+from discriminator import Discriminator, CDiscriminator, cDCDiscriminator
 from sys import argv, exit, stderr
 from datetime import date
 
 BS = 128 # Batch size
 LR = 0.0002 # Learning Rate
 IMG_SIZE = 64
-CELEBA_DIR="dataset/CelebA/"
-N_CLASSES = 2
+N_CLASSES = 10
 
 def loadMnistDataset():
     return torch.utils.data.DataLoader( # Load MNIST DATASET
@@ -37,48 +36,15 @@ def loadMnistDataset():
         batch_size=BS, shuffle=True
     )
 
-def loadCelebADataset():
-    return torch.utils.data.DataLoader(
-        dset.ImageFolder(
-            root=CELEBA_DIR,
-            transform=transforms.Compose([
-                transforms.Resize(IMG_SIZE),
-                transforms.CenterCrop(IMG_SIZE),
-                transforms.ToTensor(),
-                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-            ])
-        ),
-        batch_size=BS,
-        shuffle=True,
-        num_workers=2
-    )
-
-def loadCustomCelebADataset():
-    return torch.utils.data.DataLoader(
-        CelebaDataset(
-            img_dir=Path(CELEBA_DIR) / "images",
-            transform=transforms.Compose([
-                transforms.Resize(IMG_SIZE),
-                transforms.CenterCrop(IMG_SIZE),
-                transforms.ToTensor(),
-                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-            ])
-        ),
-        batch_size=BS,
-        shuffle=True,
-        num_workers=1
-    )
-
-class WTrainer():
+class cDCTrainer():
     def __init__(self, ngpu):
         print(torch.cuda.is_available())
         device_type = "cuda:0" if torch.cuda.is_available() and ngpu >= 0 else "cpu"
         self.device = torch.device(device_type)
 
-        self.GNet = CGenerator(ngpu).to(self.device)
-        self.DNet = CDiscriminator(ngpu).to(self.device)
+        self.GNet = cDCGenerator(ngpu).to(self.device)
+        self.DNet = cDCDiscriminator(ngpu).to(self.device)
 
-        print(device_type)
         print(self.device.type)
         if self.device.type == "cuda" and ngpu > 1:
             device_ids = list(range(ngpu))
@@ -93,51 +59,49 @@ class WTrainer():
         self.DOpti = optim.Adam(self.DNet.parameters(), lr=LR)
         # Adam optimizer -> Stochastic Optimization
 
-        self.loss_fun = torch.nn.BCELoss() # Error function
-        self.writter = SummaryWriter(log_dir='log/loss', comment='Training loss') # tensorboard logger
-        self.fill = torch.zeros(N_CLASSES, N_CLASSES, IMG_SIZE, IMG_SIZE, device=self.device)
-        for i in range(0, 2) :
-            self.fill[i, i, :, :] = 1
+        self.loss_fun = torch.nn.BCELoss() # Error calculation concerning GAN
+        self.writter = SummaryWriter(log_dir='log/loss', comment='Training loss') # logger pour tensorboard
+
+        self.fill = torch.zeros(10, 10, IMG_SIZE, IMG_SIZE, device=self.device)
+        for i in range(0, N_CLASSES):
+            self.fill[i, i , :, :] = 1
 
     def __del__(self):
         self.writter.close()
 
     # Train generator model
     def trainGNet(self):
-        for p in self.DNet.parameters() : # Avoid needless calculation
-            p.requires_grad = False
-    
         self.GOpti.zero_grad()
 
         fake_labels = gen_fake_labels(BS, self.device)
         fake_labels_fill = self.fill[fake_labels]
-
+        
         fake_imgs = self.GNet(self.createNoise(fake_labels.size(0)), fake_labels)
         validity = self.DNet(fake_imgs, fake_labels_fill)
 
-        validity.backward()
+        g_loss = self.loss_fun(validity, torch.ones(BS, 1, 1, 1, device=self.device))
+        g_loss.backward()
 
         self.GOpti.step()
-        return validity
+        return g_loss
 
 
-    # Train Discriminator model
+    # Train discriminator model
     def trainDNet(self, fake_data, fake_labels, real_data , labels):
-        for p in self.DNet.parameters() : # Avoid needless calculation
-            p.requires_grad = True
-
         self.DOpti.zero_grad()
 
         labels_fill = self.fill[labels]
         fake_labels_fill = self.fill[fake_labels]
 
-        # Training with real pictures
+        # Train with real pictures
         real_validity = self.DNet(real_data, labels_fill)
-        real_validity.backward(retain_graph=True)
+        real_loss = self.loss_fun(real_validity, torch.ones(real_data.shape[0], 1, 1, 1, device=self.device))
 
-        # Training with fake pictures
+        # Train with generated pictures
         fake_validity = self.DNet(fake_data, fake_labels_fill)
-        d_loss = real_validity - fake_validity
+        fake_loss = self.loss_fun(fake_validity, torch.zeros(BS, 1, 1, 1, device=self.device))
+
+        d_loss = real_loss + fake_loss
         d_loss.backward()
 
         self.DOpti.step()
@@ -157,7 +121,7 @@ class WTrainer():
                 real_imgs = batch.to(self.device)
                 s = real_imgs.size(0)
 
-                # Prepare images batch and labels
+                # Prepare generated pictures and lables sets
                 fake_labels = gen_fake_labels(BS, self.device)
                 fake_imgs = self.GNet(self.createNoise(BS), fake_labels).detach()
 
@@ -186,7 +150,7 @@ class WTrainer():
         torch.save(self.GNet.state_dict(), Gpath)
         torch.save(self.DNet.state_dict(), Dpath)
 
-    # Return a normalized vector of shape (1, BS), used as input for generator
+    # Return a normalized vector of shape (1, BS)used as input generator
     def createNoise(self, n):
         return torch.randn(n, 100, 1, 1, device=self.device)
 
@@ -197,7 +161,7 @@ class WTrainer():
         return data.view(data.size(0), 1, i, j)
 
 def gen_fake_labels(n, device='cpu') :
-    fake_labels = torch.randint(0, 2, (n,) , device=device)
+    fake_labels = torch.randint(0, 10, (n,) , device=device)
     return (fake_labels)
 
 def loadModel(path, Model):
@@ -227,19 +191,4 @@ def make_grid(modelPath):
     grid = utils.make_grid(output, padding=2, normalize=True)
     image = ((grid.permute(1, 2, 0).detach().numpy()))
     plt.imshow(image)
-    plt.show()
-
-if __name__ == "__main__":
-    load_and_show("./models/genator_50_e")
-    exit(0)
-    t = Trainer()
-    t(int(argv[1]), mnistLoader)
-
-    t.save(argv[2], argv[3])
-
-    rand_tensor = torch.randn(1, BS) # Create random input
-
-    output = t.GNet(1) # Call generator with random input
-
-    plt.imshow(getImage(output), cmap='gray') # Plot output
     plt.show()
