@@ -14,8 +14,11 @@ services:
         build: .
         volumes:
             - html:/html/
+            - ./src:/api/src
+            - ./VanGaugan:/api/VanGaugan
+            - ./models:/api/models
         networks:
-            - vg-networks
+            - vg-network
 
     reverse-proxy:
         depends_on:
@@ -28,7 +31,7 @@ services:
         ports:
             - "80:80"
         networks:
-            - vg-networks
+            - vg-network
 
 networks:
     vg-network:
