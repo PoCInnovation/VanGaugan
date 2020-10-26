@@ -31,7 +31,7 @@ class Generator(nn.Module): # Class to build generator model
 
 class CGenerator(nn.Module): # Class to build generator model
     def __init__(self):
-        super(Generator, self).__init__()
+        super(CGenerator, self).__init__()
 
         self.main = nn.Sequential(
             nn.Linear(138, 256), # Transformation linéaire, y[256] = x[nf] * A^T + b
@@ -54,7 +54,7 @@ class CGenerator(nn.Module): # Class to build generator model
 
 class DCGenerator(nn.Module):
     def __init__(self, ngpu):
-        super(CGenerator, self).__init__()
+        super(DCGenerator, self).__init__()
         self.ngpu = ngpu
         self.main = nn.Sequential(
             nn.ConvTranspose2d(nz, nf * 8, 4, 1, 0),
@@ -85,7 +85,7 @@ class DCGenerator(nn.Module):
 # Conditionnal Deep Convolutionnal GAN
 class cDCGenerator(nn.Module):
     def __init__(self, ngpu):
-        super(CGenerator, self).__init__()
+        super(cDCGenerator, self).__init__()
         self.ngpu = ngpu
         self.main = nn.Sequential(
             nn.ConvTranspose2d(nz, nf * 8, 4, 1, 0),

@@ -9,6 +9,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from torchvision.utils import save_image
 import imageio
+from PIL import ImageFile
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 #from torch.utils.tensorboard import SummaryWriter
 
 from generator import Generator, getImage, CGenerator
@@ -20,7 +23,6 @@ from os import listdir
 BS = 128 # Batch size
 LR = 0.0002 # Learning Rate
 IMG_SIZE = 64
-CELEBA_DIR="dataset/CelebA/"
 
 def loadMnistDataset():
     return torch.utils.data.DataLoader( # Load MNIST DATASET
@@ -37,10 +39,10 @@ def loadMnistDataset():
         batch_size=BS, shuffle=True
     )
 
-def loadCelebADataset():
+def loadDataset(datasetPath):
     return torch.utils.data.DataLoader(
         dset.ImageFolder(
-            root=CELEBA_DIR,
+            root=datasetPath,
             transform=transforms.Compose([
                 transforms.Resize(IMG_SIZE),
                 transforms.CenterCrop(IMG_SIZE),
@@ -55,20 +57,20 @@ def loadCelebADataset():
 
 class Trainer():
     def __init__(self, ngpu):
-        print(torch.cuda.is_available())
+        print(torch.cuda.is_available(), file=stderr)
         device_type = "cuda:0" if torch.cuda.is_available() and ngpu > 0 else "cpu"
         self.device = torch.device(device_type)
 
         self.GNet = CGenerator(ngpu).to(self.device)
         self.DNet = CDiscriminator(ngpu).to(self.device)
 
-        print(device_type)
-        print(self.device.type)
+        print(device_type, file=stderr)
+        print(self.device.type, file=stderr)
         if self.device.type == "cuda" and ngpu > 1:
             device_ids = list(range(ngpu))
             self.GNet = nn.DataParallel(self.GNet, device_ids=device_ids)
             self.DNet = nn.DataParallel(self.DNet, device_ids=device_ids)
-            print("GPU OK")
+            print("GPU OK", file=stderr)
 
         self.GNet.init_weight()
         self.DNet.init_weight()

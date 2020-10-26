@@ -1,10 +1,14 @@
 from argparse import ArgumentParser
 from sys import exit, argv, stderr, path
 path.append("./src")
-from train import Trainer, load_and_show, loadCelebADataset, make_grid, createTrainGif
+from train import Trainer, load_and_show, make_grid, createTrainGif, loadDataset
 from wtrain import gen_fake_labels
 from app import run_model_api
 import random
+
+CELEBA_DIR="dataset/CelebA/"
+ARTWORKS_DIR="dataset/artworks/"
+WIKIART="dataset/wikiart"
 
 def parseArgs():
     parser = ArgumentParser()
@@ -36,7 +40,7 @@ def main():
     args = parseArgs()
     if "epoch" in args:
         t = Trainer(args.ngpu)
-        t(args.epoch, loadCelebADataset()) # CustomCelebAdataset() to use with wtrainer
+        t(args.epoch, loadDataset(CELEBA_DIR)) # CustomCelebAdataset() to use with wtrainer
         t.save(args.generator, args.discriminator)
         del t
     elif "filepath" in args:
@@ -51,7 +55,7 @@ def main():
     elif "models_dir" in args:
         createTrainGif(args.models_dir, args.output)
     elif "generator_path" in args:
-        run_model_api(args.generator_path)
+        run_model_api()
     return 0
 
 if __name__ == "__main__":

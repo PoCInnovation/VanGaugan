@@ -1,0 +1,41 @@
+version: "3"
+
+services:
+    front:
+        container_name: vg-front
+        build: ./front
+        volumes:
+            - html:/app/build
+
+    api:
+        depends_on:
+            - front
+        container_name: vg-api
+        build: .
+        volumes:
+            - html:/html/
+            - ./src:/api/src
+            - ./VanGaugan:/api/VanGaugan
+            - ./models:/api/models
+        networks:
+            - vg-network
+
+    reverse-proxy:
+        depends_on:
+            - api
+        container_name: vg-nginx
+        image: nginx:mainline-alpine
+        volumes:
+            - html:/var/www/html
+            - ./nginx/:/etc/nginx/conf.d
+        ports:
+            - "80:80"
+        networks:
+            - vg-network
+
+networks:
+    vg-network:
+      driver: bridge
+
+volumes:
+    html:
