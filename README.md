@@ -2,9 +2,35 @@
 
 Multiple Convolutionnal Generative Adversarial networks implementations using Pytorch.
 
+There are :
+
+- Vanilla GAN - (dataset : MNIST)
+
+- Conditionnal GAN - (dataset : MNIST, labels : number value)
+
+- Deep Convolutionnal GAN - (datasets : CelebA & MNIST)
+
+- Deep Convolutionnal Wassertein GAN - (CelebA, labels : gender)
+
 The aim of the project is to create an Artificial Intelligence
 able to generate fake images, such as faces or landscapes,
 which appear real from a human point of view.
+
+## What is a GAN ?
+
+GAN stand for **G**enerative **A**dversarial **N**etworks.
+
+Here is a short definition that can be found on the internet.
+
+> Generative adversarial networks (GANs) are algorithmic architectures 
+> that use two neural networks, pitting one against the other (thus the 
+> “adversarial”) in order to generate new, synthetic instances of data 
+> that can pass for real data. They are used widely in image generation, 
+> video generation and voice generation.
+
+([source](https://wiki.pathmind.com/generative-adversarial-network-gan))
+
+![](/home/matthis/Documents/Epitech/POC/VanGaugan/Pictures/GANSchem.png)
 
 ## Installation
 
