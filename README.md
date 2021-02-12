@@ -30,7 +30,7 @@ Here is a short definition that can be found on the internet.
 
 ([source](https://wiki.pathmind.com/generative-adversarial-network-gan))
 
-![](/home/matthis/Documents/Epitech/POC/VanGaugan/Pictures/GANSchem.png)
+![](https://raw.githubusercontent.com/PoCInnovation/VanGaugan/master/Pictures/GANSchem.png)
 
 ## Installation
 
@@ -94,7 +94,7 @@ and wait a bit. You should be able to reach front-end [here](http://localhost). 
 
 
 
-![](/home/matthis/Documents/Epitech/POC/VanGaugan/Pictures/front.png)
+![](https://raw.githubusercontent.com/PoCInnovation/VanGaugan/master/Pictures/front.png)
 
 *front-end screenshot*
 
@@ -102,7 +102,7 @@ and wait a bit. You should be able to reach front-end [here](http://localhost). 
 
 ### Docker architecture
 
-![](/home/matthis/Documents/Epitech/POC/VanGaugan/Pictures/DockerArchi.png)
+![](https://raw.githubusercontent.com/PoCInnovation/VanGaugan/master/Pictures/DockerArchi.png)
 
 *Schematic representation of VanGaugan docker architecture*
 
