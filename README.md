@@ -32,6 +32,8 @@ Here is a short definition that can be found on the internet.
 
 ![](https://raw.githubusercontent.com/PoCInnovation/VanGaugan/master/Pictures/GANSchem.png)
 
+*GAN diagram representation*
+
 ## Installation
 
 You can easily test the Deep Convolutional Generative Adversarial Network implementation.
@@ -96,7 +98,7 @@ and wait a bit. You should be able to reach front-end [here](http://localhost). 
 
 ![](https://raw.githubusercontent.com/PoCInnovation/VanGaugan/master/Pictures/front.png)
 
-*front-end screenshot*
+*VanGaugan front-end screenshot*
 
 <u>N.B. :</u> Labels field has been added for a futur iteration
 
@@ -104,7 +106,7 @@ and wait a bit. You should be able to reach front-end [here](http://localhost). 
 
 ![](https://raw.githubusercontent.com/PoCInnovation/VanGaugan/master/Pictures/DockerArchi.png)
 
-*Schematic representation of VanGaugan docker architecture*
+*Diagram representing VanGaugan docker architecture*
 
 ## Authors
 
